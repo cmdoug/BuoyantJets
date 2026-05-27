@@ -1,5 +1,5 @@
 //
-// settings_chakravarthy_etal_2017.idp
+// settings_chakravarthy_etal_2018.idp
 // Gretchen Schulke
 // gretchen.schulke@duke.edu
 //
@@ -24,7 +24,7 @@
   macro initf(i)[i, i]//EOM
   func Pkf = [P2, P2];
 // Define quantities for mesh adaptation and plotting in Paraview
-  macro adaptu(u)u#T//EOM
+  macro adaptu(u)[u, u#y], u#T, u#p//EOM
 // Name and order for real Paraview outputs
   string ParaviewDataName = "velocity temperature pressure";
   string ParaviewDataNamef = "momentum";
@@ -37,7 +37,8 @@
   int[int] ParaviewOrderc = [ParaviewOrder,ParaviewOrder];
   int[int] ParaviewOrderfc = [ParaviewOrderf,ParaviewOrderf];
   // Initial conditions (if no file)
-  macro InitialConditions()[0, 0, 1, 0]//EOM
+  macro Uinlet()( (y == 0) ? 1.0 : (0.5 + 0.5*tanh(2.5*(1/(y + (y==0)) - y))) ) // EOM
+  macro InitialConditions()[Uinlet, 0, 1, 0]//EOM
 // Boundary labels
   int BCnull = 0;
   int BCinflow = 1;
@@ -46,5 +47,7 @@
   int BCwall = 4;
 // Define solution monitors to extract: here maximum temperature in the domain
   macro getmonitors() {
-    monitors["Tmax"] = ubg[].max;
+    fespace Xh1(Thg, P2);
+    Xh1 Tfield = ubgT;
+    monitors["Tmax"] = Tfield[].max;
 }// EOM
