@@ -69,5 +69,5 @@ FreeFem++-mpi -v 0 examples/BuoyantJets/chakravarthy.md -mo $workdir/jet
 ### Zeroth order
 1. Compute base states on the created meshes at $Re=10$ from default guess
 ```sh
-ff-mpirun -np $nproc basecompute.md -v 0 -dir $workdir -mi jet.msh -fo jetbase -Re 200 -Pr 0.7 -Ri 10 -S 7
+ff-mpirun -np $nproc basecompute.md -v 0 -dir $workdir -mi jet.msh -fo jetbase -Re 2 -Pr 0.7 -Ri 1 -S 7
 ```
