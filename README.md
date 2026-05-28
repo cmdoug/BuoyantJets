@@ -67,7 +67,7 @@ FreeFem++-mpi -v 0 examples/BuoyantJets/chakravarthy.md -mo $workdir/jet_0
 
 ## Perform parallel computations using `ff-bifbox`
 ### Zeroth order
-1. Compute base state at $Pr=0.7$, $S=7$, $Re=200$, and $Ri=10^{-4}$.
+1. Compute jet state at $Pr=0.7$, $S=7$, $Re=200$, and $Ri=10^{-4}$.
 ```sh
 ff-mpirun -np $nproc basecompute.md -v 0 -dir $workdir -mi jet_0.msh -fo jet_0 -Re 1 -Pr 0.7 -Ri 1.0e-4 -S 7
 ff-mpirun -np $nproc basecontinue.md -v 0 -dir $workdir -fi jet_0.base -fo jet -paramtarget 200 -param Re -scount 2 -mo jet -maxcount -1
@@ -75,7 +75,7 @@ cd $workdir && export lastfile=$(printf '%s\n' jet_*.base | sort -t_ -k2,2n | ta
 ff-mpirun -np $nproc basecompute.md -v 0 -dir $workdir -fi $lastfile -fo jet -Re 200 -mo jet -pv 1
 ```
 
-2. Continue base state across varying $Ri$
+2. Compute plume state at $Ri=10^3$
 ```sh
 ff-mpirun -np $nproc basecontinue.md -v 0 -dir $workdir -fi jet.base -fo plume -paramtarget 1e3 -param Ri -scount 5 -mo plume -maxcount -1
 cd $workdir && export lastfile=$(printf '%s\n' plume_*.base | sort -t_ -k2,2n | tail -1) && cd -
