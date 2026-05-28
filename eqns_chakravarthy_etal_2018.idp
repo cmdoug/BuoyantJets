@@ -25,6 +25,8 @@
 
   macro ndotgrads(s) ( y*( N.x*dx(s) + N.y*dy(s))) // EOM
 
+  macro divdiv(v, u) = ( y*(dx(v) + dy(v#y)) + v#y )*( (dx(u) + dy(u#y)) + u#y/y )
+
 
   // phi macro for simplification 
 
@@ -53,9 +55,9 @@
           //+ ( gradphi(ubT)*ugradf(v, ub) )/(params["Re"]*params["S"])
           //+ ( gradphi(ubT)*ugradf(v, ub) + phi(ubT)*div(v)*div(ub) )/(3.*params["Re"]*params["S"])
           - vx*params["Ri"]*ubT 
-          + vT * (ugradf(ub, ubT) - phi(ubT)/(params["S"]-1)*div(ub))
-          + ( vp*(params["S"]-1)*diff(ubT, ubT) + phi(ubT)*diff(vp, ubT))/(params["Pr"]*params["Re"]*params["S"]) 
-          + vp*phi(ubT)/(params["S"]-1)*div(ub)
+          + vp * (ugradf(ub, ubT) - phi(ubT)/(params["S"]-1)*div(ub))
+          + (gradphi(ubT)*ugradf(vT, ubT) + phi(ubT)*diff(vT, ubT))/( params["Pr"]*params["Re"]*params["S"] )
+          + vT*ugradf(ub, ubT)
         )
       + int1d(Th)(
         phi(ubT)*ndotu(v)*div(ub)/(3*params["Re"]*params["S"])
@@ -67,45 +69,37 @@
     varf vJ(defu(dum), defu(v))
     =  int2d(Th)(
        ugradu(v, ub ,dum) + ugradu(v, dum, ub) + ( gradphi(ubT)*ugradf(v, dum) + diff(v, dum)*phi(ubT) )/(params["Re"]*params["S"])
-      + (v*gradphi(ubT) + phi(ubT)*div(v))*(div(dum)/(3.*params["Re"]*params["S"])) - vx*params["Ri"]*dumT 
-      + vT*(ugradf(dum, ubT) - phi(ubT)*div(dum)/(params["S"]-1))
-      + vp*phi(ubT)*div(dum)/(params["S"]-1)
-      + udotgradphi(v, dumT)*ubp + phi(dumT)*div(v)*p
-      + ( (params["S"]-1)/((params["S"]*params["Re"])) )*(ugradf(v, dumT)*div(ub) + dumT*div(v)*div(ub))
-      + vT*(ugradf(ub, dumT) - dumT*div(ub))
-      + (vp*(params["S"]-1)*diff(dumT, ubT) + gradphi(ubT)*ugradf(ub, vp)*dumT
-          + (params["S"]-1)*dumT*diff(vp, ubT) + phi(ubT)*diff(vp, dumT))/(params["Pr"]*params["Re"]*params["S"])
-      - phi(ubT)*ugradf(v, dump)
+      + (v*gradphi(ubT) + phi(ubT)*div(v))*(div(dum)/(3.*params["Re"]*params["S"])) 
+      + vp*(ugradf(dum, ubT) - phi(ubT)*div(dum)/(params["S"]-1))
+      + vT*ugradf(dum, ubT)
+      + udotgradphi(v, dumT)*ubp + phi(dumT)*div(v)*ubp
+      + ( (params["S"]-1)/((params["S"]*params["Re"])) )*(ugradf(v, dumT)*div(ub)/y + dumT*divdiv(v, ub)) - vx*params["Ri"]*dumT 
+      + vp*(ugradf(ub, dumT) - dumT*div(ub))
+      + (gradphi(ubT)*ugradf(vT, dumT) + phi(ubT)*diff(v, dumT) + gradphi(dumT)*ugradf(vT, ubT) + phi(dumT)*diff(v, ubT))/(params["Pr"]*params["Re"]*params["S"])
+      + vT*ugradf(ub, dumT)
+      + udotgradphi(v, ubT)*dump + phi(ubT)*div(v)*dump
     )       
     - int1d(Th, BCaxis, BCinflow, BCoutlet, BCwall)(
-      //  v*phi(ubT)*ndotgrads(dum)/(params["Re"]*params["S"]) + phi(ubT)*ndotu(v)*div(dum)/(params["Re"]*params["S"]) 
-      // + (params["S"]-1)/(params["Re"]*params["S"])*( v*dumT*ndotgrads(ub) + dumT*ndotu(v)*div(ub) ) 
-      // + ((params["S"]-1)*dumT*vp*ndotgrads(ubT) + phi(ubT)*vp*ndotgrads(dumT))/(params["Pr"]*params["Re"]*params["S"])
       phi(ubT)*ndotu(v)*div(dum)/(3.*params["Re"]*params["S"]) + (params["S"]-1)/(params["Re"]*params["S"])*dumT*ndotu(v)*div(ub)
     )
 
     + int2d(Th)(
-       ugradu(v, ub , um) + ugradu(v, um, ub) + ( gradphi(ubT)*ugradf(v, um) + diff(v, um)*phi(ubT) )/(params["Re"]*params["S"])
-      + (v*gradphi(ubT) + phi(ubT)*div(v))*(div(um)/(3.*params["Re"]*params["S"]))  - vx*params["Ri"]*umT 
-      + vT*(ugradf(um, ubT) - phi(ubT)*div(um)/(params["S"]-1))
-      + vp*phi(ubT)*div(um)/(params["S"]-1)
-      + udotgradphi(v, umT)*ubp + phi(umT)*div(v)*p    
-      + ( (params["S"]-1)/((params["S"]*params["Re"])) )*(ugradf(v, umT)*div(ub) + umT*div(v)*div(ub))
-      + vT*(ugradf(ub, umT) - umT*div(ub))
-      + (vp*(params["S"]-1)*diff(umT, ubT) + gradphi(ubT)*ugradf(ub, vp)*umT
-          + (params["S"]-1)*umT*diff(vp, ubT) + phi(ubT)*diff(vp, umT))/(params["Pr"]*params["Re"]*params["S"])
-      - phi(ubT)*ugradf(v, ump)
+         ugradu(v, ub ,um) + ugradu(v, um, ub) + ( gradphi(ubT)*ugradf(v, um) + diff(v, um)*phi(ubT) )/(params["Re"]*params["S"])
+      + (v*gradphi(ubT) + phi(ubT)*div(v))*(div(um)/(3.*params["Re"]*params["S"])) 
+      + vp*(ugradf(um, ubT) - phi(ubT)*div(um)/(params["S"]-1))
+      + vT*ugradf(um, ubT)
+      + udotgradphi(v, umT)*ubp + phi(umT)*div(v)*ubp
+      + ( (params["S"]-1)/((params["S"]*params["Re"])) )*(ugradf(v, umT)*div(ub)/y + umT*divdiv(v, ub)) - vx*params["Ri"]*dumT 
+      + vp*(ugradf(ub, umT) - umT*div(ub))
+      + (gradphi(ubT)*ugradf(vT, umT) + phi(ubT)*diff(v, umT) + gradphi(umT)*ugradf(vT, ubT) + phi(umT)*diff(v, ubT))/(params["Pr"]*params["Re"]*params["S"])
+      + vT*ugradf(ub, umT)
+      + udotgradphi(v, ubT)*ump + phi(ubT)*div(v)*ump
     )       
     - int1d(Th, BCaxis, BCinflow, BCoutlet, BCwall)(
-      //  v*phi(ubT)*ndotgrads(um)/(params["Re"]*params["S"]) + phi(ubT)*ndotu(v)*div(um)/(params["Re"]*params["S"]) 
-      // + (params["S"]-1)/(params["Re"]*params["S"])*( v*umT*ndotgrads(ub) + umT*ndotu(v)*div(ub) ) 
-      // + ((params["S"]-1)*umT*vp*ndotgrads(ubT) + phi(ubT)*vp*ndotgrads(umT))/(params["Pr"]*params["Re"]*params["S"])
-      phi(ubT)*ndotu(v)*div(um)/(3.*params["Re"]*params["S"]) + (params["S"]-1)/(params["Re"]*params["S"])*umT*ndotu(v)*div(ub)
+      phi(ubT)*ndotu(v)*div(um)/(3.*params["Re"]*params["S"]) + (params["S"]-1)/(params["Re"]*params["S"])*dumT*ndotu(v)*div(ub)
+    )
 
-
-    )  
-
-  + HomBoundaryConditions(dum);
+  + HomBoundaryConditions(um);
 
 // MASS OPERATOR 
   varf vM(defu(dum), defu(v))
@@ -127,7 +121,9 @@
 // HESSIAN OPERATOR 
     varf vH(defu(dum), defu(v))
     = int2d(Th)(
-     -v*(ugradf(um, um2) + ugradf(um2, um))
+     v*(ugradf(um, um2) + ugradf(um2, um))
+    + (gradphi(umT)*ugradf(vT, um2T) + phi(umT)*diff(v, um2T) 
+    +  gradphi(um2T)*ugradf(vT, umT) + phi(um2T)*diff(v, um2T))/(params["Pr"]*params["Re"]*params["S"] ) 
     ) 
 
   + HomBoundaryConditions(dum);
